@@ -9,15 +9,23 @@ class IssueChecklistsController < ApplicationController
     old_checklist_item = @checklist_item.clone 
     @checklist_item.is_done = !@checklist_item.is_done
     
-    @checklist_item.save
-    if old_checklist_item.info != @checklist_item.info
-      journal = Journal.new(:journalized => @checklist_item.issue, :user => User.current)
-      journal.details << JournalDetail.new(:property => 'attr',
-                                                    :prop_key => 'checklist',
-                                                    :old_value => old_checklist_item.info,
-                                                    :value => @checklist_item.info)
-      journal.save
-    end                                                
+    if @checklist_item.save
+    
+      if RedmineIssueChecklist.settings[:save_log] && old_checklist_item.info != @checklist_item.info
+        journal = Journal.new(:journalized => @checklist_item.issue, :user => User.current)
+        journal.details << JournalDetail.new(:property => 'attr',
+                                                      :prop_key => 'checklist',
+                                                      :old_value => old_checklist_item.info,
+                                                      :value => @checklist_item.info)
+        journal.save
+      end 
+      
+      if (Setting.issue_done_ratio == "issue_field") && RedmineIssueChecklist.settings[:issue_done_ratio]
+        done_checklist = @checklist_item.issue.checklist.map{|c| c.is_done ? 1 : 0}
+        @checklist_item.issue.done_ratio = (done_checklist.count(1) * 10) / done_checklist.count * 10
+        @checklist_item.issue.save
+      end
+    end
     respond_to do |format|
       format.js do 
         render :update do |page|  
