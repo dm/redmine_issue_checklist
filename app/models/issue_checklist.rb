@@ -14,4 +14,8 @@ class IssueChecklist < ActiveRecord::Base
     self.issue.project if self.issue 
   end  
   
+  def info
+    "[#{self.is_done ? 'x' : ' ' }] #{self.subject.strip}"
+  end
+  
 end

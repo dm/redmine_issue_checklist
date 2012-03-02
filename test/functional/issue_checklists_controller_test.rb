@@ -10,14 +10,6 @@ class IssueChecklistsControllerTest < ActionController::TestCase
     Setting.default_language = 'en'
   end
 
-  test "should post new" do     
-    @request.session[:user_id] = 1
-    
-    xhr :post, :new, :issue_id => 1, :new_checklist_item => "New checklist item"
-    assert_response :success
-    assert_select 'label', /New checklist item/
-  end      
-
   test "should not post new by deny user" do     
     @request.session[:user_id] = 5
     
